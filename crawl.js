@@ -1,14 +1,30 @@
-/* 
-    We need a function that accepts as input a URL string
-    And returns a "normalized" URL. To "normalize" means to "make the same". So, for example, all of these URLs are the "same page" according to most websites and HTTP standards:
+const { JSDOM } = require('jsdom')
 
-    https://wagslane.dev/path/
-    https://wagsLane.Dev/path
-    https://wagslane.dev/path
-    http://wagslane.dev/path
-    
-    We want our normalizeURL() function to map all of those same inputs to a single normalized output: wagslane.dev/path
-*/
+function getURLsFromHTML(htmlBody, baseURL){
+    const urls = []
+    const dom = new JSDOM(htmlBody)
+    const linkElements = dom.window.document.querySelectorAll('a')
+    for (const linkElement of linkElements) {
+        if (linkElement.href.slice(0,1) === '/') {
+            // relative url
+            try {
+                const urlObj = new URL(`${baseURL}${linkElement.href}`)
+                urls.push(urlObj.href)
+            } catch(err) {
+                console.log('error with relative URL: ${err.message}')
+            }
+        } else {
+            // absolute url
+            try {
+                const urlObj = new URL(linkElement.href)
+                urls.push(urlObj.href)
+            } catch(err) {
+                console.log('error with absolute URL: ${err.message}')
+            }
+        }
+    }
+    return urls
+}
 
 function normalizeURL(urlString){
     const urlObj = new URL(urlString)
@@ -21,5 +37,6 @@ function normalizeURL(urlString){
 
 // make the normalizeURL function available to other js files
 module.exports = {
-    normalizeURL
+    normalizeURL,
+    getURLsFromHTML
 }
