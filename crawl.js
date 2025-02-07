@@ -18,15 +18,16 @@ async function crawlPage(baseURL, currentURL, pages){
         return pages
     }
 
+    // init this page in map
     pages[normalizedCurrentURL] = 1
 
     console.log(`Actively crawling: ${currentURL}`)
-
+    let htmlBody = ''
     try {
         const resp = await fetch(currentURL)
 
         if ( resp.status > 399 ) {
-            console.log(`Error in fetch with status code: ${resp.status}, on page ${currentURL}`)
+            console.log(`HTTP error with status code: ${resp.status}, on page ${currentURL}`)
             return pages
         }
 
@@ -36,18 +37,18 @@ async function crawlPage(baseURL, currentURL, pages){
             return pages
         }
 
-        const htmlBody = await resp.text()
+        htmlBody = await resp.text()
+    } catch (err) {
+        console.log(`Error in fetch: ${err.message}, on page ${currentURL}`)
+    }
 
-        nextURLs = getURLsFromHTML(htmlBody, baseURL)
+    const nextURLs = getURLsFromHTML(htmlBody, baseURL)
         
         for (const nextURL of nextURLs) {
             pages = await crawlPage(baseURL,nextURL,pages)
         }
 
         return pages
-    } catch (err) {
-        console.log(`Error in fetch: ${err.message}, on page ${currentURL}`)
-    }
 }
 
 function getURLsFromHTML(htmlBody, baseURL){
@@ -61,7 +62,7 @@ function getURLsFromHTML(htmlBody, baseURL){
                 const urlObj = new URL(`${baseURL}${linkElement.href}`)
                 urls.push(urlObj.href)
             } catch(err) {
-                console.log('error with relative URL: ${err.message}')
+                console.log(`error with relative URL: ${err.message}`)
             }
         } else {
             // absolute url
@@ -69,7 +70,7 @@ function getURLsFromHTML(htmlBody, baseURL){
                 const urlObj = new URL(linkElement.href)
                 urls.push(urlObj.href)
             } catch(err) {
-                console.log('error with absolute URL: ${err.message}')
+                console.log(`error with absolute URL: ${err.message}`)
             }
         }
     }
