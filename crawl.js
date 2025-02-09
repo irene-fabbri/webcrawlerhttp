@@ -59,7 +59,7 @@ function getURLsFromHTML(htmlBody, baseURL){
         if (linkElement.href.slice(0,1) === '/') {
             // relative url
             try {
-                const urlObj = new URL(`${baseURL}${linkElement.href}`)
+                const urlObj = new URL(linkElement.href, baseURL)
                 urls.push(urlObj.href)
             } catch(err) {
                 console.log(`error with relative URL: ${err.message}`)
